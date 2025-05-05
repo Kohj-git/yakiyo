@@ -13,13 +13,13 @@ import lombok.NoArgsConstructor;
 @Getter
 public class User {
     @Id
-    private String Id;
+    private String Id; //구글 아이디 받아서 사용할거임
 
     private String fcmToken;
 
     private String name;
 
-    private String nickname; //기본으로 구글 이름을 nickname으로 사용
+    private String nickname;
 
     @Column(unique = true)
     private String email;
