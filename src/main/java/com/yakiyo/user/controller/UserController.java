@@ -35,45 +35,29 @@ public class UserController {
     @PatchMapping("/fcm/{googleId}")
     public ResponseEntity<String> updateFcmToken(@PathVariable String googleId,
             @RequestBody FcmUpdateReqDto request) {
-        try {
-            return ResponseEntity.ok(userService.updateFcmToken(googleId,request));
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        return ResponseEntity.ok(userService.updateFcmToken(googleId,request));
     }
 
 
     // 유저 삭제 (탈퇴)
     @DeleteMapping("/{googleId}")
     public ResponseEntity<String> deleteUser(@PathVariable String googleId) {
-        try {
-            return ResponseEntity.ok(userService.deleteUser(googleId));
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        return ResponseEntity.ok(userService.deleteUser(googleId));
     }
 
     //유저 닉네임 설정
     @PatchMapping("/nick/{googleId}")
     public ResponseEntity<String> updateNickname( @PathVariable String googleId,
             @RequestBody nickUpdateReqDto request) {
-        try {
-            return ResponseEntity.ok(userService.updateNick(googleId, request));
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        return ResponseEntity.ok(userService.updateNick(googleId, request));
     }
 
     //마이페이지
     //닉네임,이메일 필요
-    //닉네임 없을시 null로 감
+    //닉네임 없을시 null 감
     @GetMapping("/info/{googleId}")
     public ResponseEntity<MyInfoResDto> loadUserInfo(@PathVariable String googleId) {
-        try {
-            return ResponseEntity.ok(userService.loadUserInfo(googleId));
-        } catch (UserNotFoundException e) {
-            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
-        }
+        return ResponseEntity.ok(userService.loadUserInfo(googleId));
     }
 
 
