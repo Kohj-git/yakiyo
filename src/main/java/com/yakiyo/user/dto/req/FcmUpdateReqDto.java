@@ -4,6 +4,5 @@ import lombok.Data;
 
 @Data
 public class FcmUpdateReqDto {
-    private String googleId;
     private String fcmToken;
 }
