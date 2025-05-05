@@ -36,6 +36,9 @@ public class User {
     public void updateEmail(String email) {
         this.email = email;
     }
+    public void updateNickName(String nickname) {
+        this.nickname = nickname;
+    }
 
 
 }

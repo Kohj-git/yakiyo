@@ -7,10 +7,8 @@ import org.springframework.stereotype.Component;
 
 @Component
 public class UserMapper {
-    
-    /**
-     * LoginReqDto를 User 엔티티로 변환
-     */
+
+    //LoginReqDto -> User 엔티티 변환
     public User toEntity(LoginReqDto dto) {
         return User.builder()
                 .Id(dto.getGoogleId())
@@ -19,10 +17,8 @@ public class UserMapper {
                 .fcmToken(dto.getFcmToken())
                 .build();
     }
-    
-    /**
-     * User 엔티티를 LoginResDto로 변환
-     */
+
+    //User 엔티티 -> LoginResDto 변환
     public LoginResDto toDto(User user) {
         return LoginResDto.builder()
                 .googleId(user.getId())
@@ -31,8 +27,6 @@ public class UserMapper {
                 .email(user.getEmail())
                 .build();
     }
-
-
 
 
 }

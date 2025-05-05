@@ -3,7 +3,7 @@ package com.yakiyo.user.dto.req;
 import lombok.Data;
 
 @Data
-public class Fcm_updateReqDto {
+public class FcmUpdateReqDto {
     private String googleId;
     private String fcmToken;
 }
