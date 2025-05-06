@@ -1,5 +1,6 @@
-package com.yakiyo.medicine.info.domain;
+package com.yakiyo.medicine.medicine_info.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.yakiyo.medicine.days.domain.Days;
 import com.yakiyo.medicine.time.domain.Time;
 import com.yakiyo.user.domain.User;
@@ -18,7 +19,7 @@ import java.util.List;
 @NoArgsConstructor
 @AllArgsConstructor
 @Builder
-public class Info {
+public class Medicine_info {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
@@ -37,11 +38,15 @@ public class Info {
     //복용요일
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "info_id")
+    @JsonIgnore
+    @Builder.Default
     private List<Days> days = new ArrayList<>();
     
     // 복용 시간
     @OneToMany(cascade = CascadeType.ALL, orphanRemoval = true)
     @JoinColumn(name = "info_id")
+    @JsonIgnore
+    @Builder.Default
     private List<Time> times = new ArrayList<>();
     
     // 요일 추가 메서드

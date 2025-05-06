@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 @Getter
 public class User {
     @Id
-    private String Id; //구글 아이디 받아서 사용할거임
+    private String id; //구글 아이디 받아서 사용할거임
 
     private String fcmToken;
 

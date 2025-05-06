@@ -19,6 +19,9 @@ bin/
 
 ### IntelliJ IDEA ###
 .idea
+
+### Application Properties ###
+src/main/resources/application.properties
 *.iws
 *.iml
 *.ipr

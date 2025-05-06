@@ -11,8 +11,10 @@ import org.springframework.transaction.annotation.Transactional;
 
 
 import java.util.Optional;
+import lombok.extern.slf4j.Slf4j;
 
 @RequiredArgsConstructor
+@Slf4j
 @Service
 public class LoginService {
     private final UserRepo userRepo;
@@ -20,8 +22,9 @@ public class LoginService {
 
     @Transactional
     public LoginResDto login(LoginReqDto request) {
+        log.info("로그인 요청: id={}, name={}, email={}", request.getId(), request.getName(), request.getEmail());
         // 구글ID로 사용자 조회
-        Optional<User> userOptional = userRepo.findById(request.getGoogleId());
+        Optional<User> userOptional = userRepo.findById(request.getId());
 
         if (userOptional.isPresent()) {
             // 기존 유저: 필요한 정보만 업데이트
@@ -35,6 +38,7 @@ public class LoginService {
 
             // 신규 유저: 생성만 하고 추가 업데이트 없음
             User newUser = userMapper.toEntity(request);  // 직접 호출
+            log.info("새 사용자 생성: id={}, name={}, email={}", newUser.getId(), newUser.getName(), newUser.getEmail());
             userRepo.save(newUser);
             return userMapper.toDto(newUser);
         }

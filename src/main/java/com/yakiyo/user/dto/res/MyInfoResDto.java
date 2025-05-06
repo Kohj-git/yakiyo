@@ -1,6 +1,6 @@
 package com.yakiyo.user.dto.res;
 
-import com.nimbusds.openid.connect.sdk.claims.UserInfo;
+
 import lombok.Builder;
 import lombok.Data;
 

@@ -6,7 +6,7 @@ import lombok.Data;
 @Data
 @Builder
 public class LoginResDto {
-    private String googleId;
+    private String id;
     private String name;
     private String email;
     private String fcmToken;

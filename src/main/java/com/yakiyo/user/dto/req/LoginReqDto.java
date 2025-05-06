@@ -1,12 +1,20 @@
 package com.yakiyo.user.dto.req;
 
-import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
+import lombok.NoArgsConstructor;
+import jakarta.validation.constraints.NotNull;
+import lombok.Setter;
 
-@Data
+@Getter
+@Setter
+@NoArgsConstructor
+@AllArgsConstructor
+@Builder
 public class LoginReqDto {
-    private String googleId; // 구글 sub
+    private String id; // 구글 sub
     private String name; //사용자 이름
     private String email; //사용자 이메일
     private String fcmToken; //fcm 토큰
 }
-

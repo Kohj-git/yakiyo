@@ -10,6 +10,12 @@ import com.yakiyo.user.service.UserService;
 import com.yakiyo.user.service.LoginService;
 
 import lombok.RequiredArgsConstructor;
+import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.media.Content;
+import io.swagger.v3.oas.annotations.media.ExampleObject;
+import io.swagger.v3.oas.annotations.media.Schema;
+import org.springframework.web.bind.annotation.RequestBody;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
@@ -17,21 +23,29 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/user")
 @RequiredArgsConstructor
+@Tag(name = "사용자", description = "사용자 관리를 위한 API")
 public class UserController {
 
     private final UserService userService;
     private final LoginService loginService;
 
-    // 로그인 및 회원가입 (구글 ID 기준)
+    @Operation(
+        summary = "로그인 및 회원가입",
+        description = "구글 ID를 기준으로 로그인하거나 새로운 회원으로 가입합니다.",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(examples = @ExampleObject(value = """
+            {
+                "id": "1123123",
+                "name": "야기요",
+                "email": "hong@gmail.com",
+                "fcmToken": "fcm_token_example"
+            }
+            """))))
     @PostMapping("/login")
     public ResponseEntity<LoginResDto> login(@RequestBody LoginReqDto request) {
         return ResponseEntity.ok(loginService.login(request));
     }
 
 
-    // FCM 토큰 업데이트
-    //로그인/회원가입 시: fcmToken 같이 보내서 저장/갱신
-    // 토큰이 갱신될 때마다: Flutter 에서 서버로 fcmToken 업데이트
     @PatchMapping("/fcm/{googleId}")
     public ResponseEntity<String> updateFcmToken(@PathVariable String googleId,
             @RequestBody FcmUpdateReqDto request) {
@@ -39,13 +53,12 @@ public class UserController {
     }
 
 
-    // 유저 삭제 (탈퇴)
     @DeleteMapping("/{googleId}")
     public ResponseEntity<String> deleteUser(@PathVariable String googleId) {
         return ResponseEntity.ok(userService.deleteUser(googleId));
     }
 
-    //유저 닉네임 설정
+
     @PatchMapping("/nick/{googleId}")
     public ResponseEntity<String> updateNickname( @PathVariable String googleId,
             @RequestBody nickUpdateReqDto request) {
