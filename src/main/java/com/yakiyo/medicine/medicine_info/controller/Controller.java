@@ -5,6 +5,8 @@ import com.yakiyo.medicine.medicine_info.dto.req.InfoUpdateReqDto;
 import com.yakiyo.medicine.medicine_info.dto.res.MedicineListResDto;
 import com.yakiyo.medicine.medicine_info.dto.res.MedicineDetailResDto;
 import com.yakiyo.medicine.medicine_info.dto.res.NextMedicineResDto;
+import com.yakiyo.medicine.medicine_info.dto.res.InfoResDto;
+import com.yakiyo.medicine.medicine_info.dto.res.TakeMedicineResDto;
 import com.yakiyo.medicine.medicine_info.service.InfoService;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.Content;
@@ -15,23 +17,33 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
+import com.yakiyo.medicine.record.dto.res.CalendarResDto;
+import com.yakiyo.medicine.record.service.CalendarService;
 import java.util.List;
 
 @RestController
 @RequiredArgsConstructor
-@RequestMapping("/api/medicine")
+@RequestMapping("/medicine")
 @Tag(name = "약 정보", description = "약 정보 관리를 위한 API")
 public class Controller {
 
     private final InfoService infoService;
+    private final CalendarService calendarService;
 
     @Operation(
         summary = "다음 복용 약 조회",
         description = "오늘 복용해야 할 약들 중 가장 가까운 시간의 약을 조회합니다."
     )
-    @GetMapping("/{googleId}/next-medicine")
+    @GetMapping("/{googleId}/next")
     public ResponseEntity<NextMedicineResDto> getNextMedicine(@PathVariable String googleId) {
         return ResponseEntity.ok(infoService.getNextMedicine(googleId));
+    }
+
+    @PostMapping("/{googleId}/{medicineId}/take")
+    public ResponseEntity<TakeMedicineResDto> takeMedicine(
+            @PathVariable String googleId,
+            @PathVariable Long medicineId) {
+        return ResponseEntity.ok(infoService.takeMedicine(googleId, medicineId));
     }
 
     @Operation(
@@ -49,7 +61,7 @@ public class Controller {
         summary = "약 상세 정보 조회",
         description = "특정 약의 상세 정보를 조회합니다. 약 이름, 복용 기간, 복용 요일, 복용 시간등을 포함합니다."
     )
-    @GetMapping("/{googleId}/medicines/{medicineId}")
+    @GetMapping("/{googleId}/{medicineId}")
     public ResponseEntity<MedicineDetailResDto> getMedicineDetail(
             @PathVariable String googleId,
             @PathVariable Long medicineId) {
@@ -80,7 +92,7 @@ public class Controller {
             }
             """)))
     )
-    @PatchMapping("/{googleId}/medicines/{medicineId}")
+    @PatchMapping("/{googleId}/{medicineId}")
     public ResponseEntity<Void> updateMedicine(
             @PathVariable String googleId,
             @PathVariable Long medicineId,
@@ -148,5 +160,17 @@ public class Controller {
             @RequestBody InfoCreateReqDto request) {
         infoService.createPeriodMedicineInfo(googleId, request);
         return ResponseEntity.ok("약 정보가 성공적으로 등록되었습니다");
+    }
+
+    @Operation(
+        summary = "월별 복용 현황 조회",
+        description = "특정 월의 날짜별 복용 현황을 조회합니다. 상태는 RED(복용 미실패), GREEN(복용 성공), BLACK(복용할 약 없음), GRAY(미래 복용 예정)로 구분됩니다."
+    )
+    @GetMapping("/{googleId}/calendar")
+    public ResponseEntity<CalendarResDto> getMonthlyCalendar(
+            @PathVariable String googleId,
+            @RequestParam int year,
+            @RequestParam int month) {
+        return ResponseEntity.ok(calendarService.getMonthlyCalendar(googleId, year, month));
     }
 }

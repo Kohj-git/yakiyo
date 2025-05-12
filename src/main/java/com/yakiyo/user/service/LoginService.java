@@ -29,7 +29,7 @@ public class LoginService {
         if (userOptional.isPresent()) {
             // 기존 유저: 필요한 정보만 업데이트
             User user = userOptional.get();
-            user.updateFcmToken(request.getFcmToken());
+            user.updateFcmToken(request.getFcmToken());  // null이든 아니든 항상 업데이트
             user.updateName(request.getName());
             user.updateEmail(request.getEmail());
             userRepo.save(user);

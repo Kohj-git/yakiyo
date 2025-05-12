@@ -31,15 +31,23 @@ public class UserController {
 
     @Operation(
         summary = "로그인 및 회원가입",
-        description = "구글 ID를 기준으로 로그인하거나 새로운 회원으로 가입합니다.",
-        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(examples = @ExampleObject(value = """
+        description = "구글 ID를 기준으로 로그인하거나 새로운 회원으로 가입합니다. fcmToken은 선택적입니다.",
+        requestBody = @io.swagger.v3.oas.annotations.parameters.RequestBody(content = @Content(examples = {
+            @ExampleObject(name = "FCM 토큰 포함", value = """
             {
                 "id": "1123123",
                 "name": "야기요",
                 "email": "hong@gmail.com",
                 "fcmToken": "fcm_token_example"
             }
-            """))))
+            """),
+            @ExampleObject(name = "FCM 토큰 미포함", value = """
+            {
+                "id": "1123123",
+                "name": "야기요",
+                "email": "hong@gmail.com"
+            }
+            """)})))
     @PostMapping("/login")
     public ResponseEntity<LoginResDto> login(@RequestBody LoginReqDto request) {
         return ResponseEntity.ok(loginService.login(request));

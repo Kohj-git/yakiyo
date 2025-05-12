@@ -20,10 +20,13 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
+
+import com.yakiyo.medicine.record.dto.res.TakeMedicineResDto;
 
 @Service
 @RequiredArgsConstructor
@@ -33,6 +36,7 @@ public class InfoService {
     private final UserRepo userRepo;
     private final MedicineDayRepo medicineDayRepo;
     private final TimeRepo timeRepo;
+    private final MedicationRecordRepo medicationRecordRepo;
 
     //약 목록 조회
     @Transactional(readOnly = true)
@@ -179,33 +183,132 @@ public class InfoService {
             default -> throw new IllegalStateException("Unexpected value: " + java.time.LocalDate.now().getDayOfWeek());
         }
 
-        record MedicineTime(Medicine_info medicine, Time time) {}
+        record MedicineTime(Medicine_info medicine, Time time, boolean taken) {}
+
+        // 오늘 복용해야 하는 약들과 시간 추출
         List<MedicineTime> todayMedicineTimes = medicines.stream()
                 .filter(medicine -> medicine.getDays().stream()
                         .anyMatch(day -> day.getDay() == today))
-                .flatMap(medicine -> medicine.getTimes().stream()
-                        .map(time -> new MedicineTime(medicine, time)))
-                .filter(mt -> mt.time().getSpecificTime().isAfter(now))
+                .flatMap(medicine -> {
+                    // 이 약의 오늘 복용 기록 조회
+                    List<MedicationRecord> records = medicationRecordRepo.findByUserAndMedicineAndDate(
+                            user, medicine, LocalDate.now());
+                    
+                    return medicine.getTimes().stream()
+                            .map(time -> new MedicineTime(
+                                    medicine,
+                                    time,
+                                    records.stream()
+                                            .anyMatch(record -> 
+                                                record.getTime().equals(time) && 
+                                                record.isTaken())
+                            ));
+                })
                 .sorted(Comparator.comparing(mt -> mt.time().getSpecificTime()))
                 .toList();
 
-        // 4. 가장 가까운 시간의 약 정보 추출
         if (todayMedicineTimes.isEmpty()) {
-            return null;  // 오늘 더 이상 복용할 약이 없음
+            return null;  // 오늘 복용할 약이 없음
         }
 
-        MedicineTime nextMedicine = todayMedicineTimes.get(0);
-        LocalTime nextTime = nextMedicine.time().getSpecificTime();
+        // 4. 현재 시간 이후의 아직 안 먹은 가장 가까운 약 찾기
+        MedicineTime nextMedicine = todayMedicineTimes.stream()
+                .filter(mt -> mt.time().getSpecificTime().isAfter(now))
+                .filter(mt -> !mt.taken())  // 아직 안 먹은 약만 필터링
+                .findFirst()
+                .orElse(null);
 
-        // 5. 남은 시간 계산 (시간 단위)
-        long hoursUntilNext = ChronoUnit.HOURS.between(now, nextTime);
+        if (nextMedicine == null) {
+            return null;  // 오늘 더 이상 복용할 약이 없거나 모두 복용했음
+        }
+
+        // 5. 선택된 약의 오늘 모든 복용 시간 정보 수집
+        Medicine_info selectedMedicine = nextMedicine.medicine();
+        List<NextMedicineResDto.TimeStatus> timeStatuses = todayMedicineTimes.stream()
+                .filter(mt -> mt.medicine().equals(selectedMedicine))
+                .map(mt -> NextMedicineResDto.TimeStatus.builder()
+                        .period(mt.time().getPeriod())
+                        .specificTime(mt.time().getSpecificTime())
+                        .hasTakenMedicine(mt.taken())
+                        .build())
+                .toList();
+
+        // 6. 다음 복용까지 남은 시간 계산 (분 단위)
+        long minutesUntilNext = ChronoUnit.MINUTES.between(now, nextMedicine.time().getSpecificTime());
 
         return NextMedicineResDto.builder()
-                .hoursUntilNext(hoursUntilNext)
-                .medicineName(nextMedicine.medicine().getMedicineName())
-                .period(nextMedicine.time().getPeriod())
-                .specificTime(nextTime)
-                .hasTakenMedicine(false)  // TODO: 복용 여부 기록 구현 필요
+                .minutesUntilNext(minutesUntilNext)
+                .medicineName(selectedMedicine.getMedicineName())
+                .todayTimes(timeStatuses)
+                .build();
+    }
+
+    /**
+     * 약 복용을 체크합니다.
+     * 체크되지 않은 가장 이른 시간대의 복용을 체크합니다.
+     * 
+     * @param googleId 사용자의 구글 ID
+     * @param medicineId 약 ID
+     * @return 체크한 시간대와 체크한 시간
+     */
+    @Transactional
+    public TakeMedicineResDto takeMedicine(String googleId, Long medicineId) {
+        // 1. 사용자와 약 정보 조회
+        User user = userRepo.findById(googleId)
+                .orElseThrow(() -> new UserNotFoundException("사용자를 찾을 수 없습니다."));
+        
+        Medicine_info medicine = infoRepo.findById(medicineId)
+                .orElseThrow(() -> new IllegalArgumentException("약을 찾을 수 없습니다."));
+
+        if (!medicine.getUser().getId().equals(googleId)) {
+            throw new IllegalArgumentException("해당 사용자의 약이 아닙니다.");
+        }
+
+        // 2. 오늘 이 약의 복용 기록 조회
+        List<MedicationRecord> todayRecords = medicationRecordRepo.findByUserAndMedicineAndDate(
+                user, medicine, LocalDate.now());
+
+        // 3. 아직 체크하지 않은 가장 이른 시간대 찾기
+        Optional<Time> nextUntakenTimeOpt = medicine.getTimes().stream()
+                .filter(time -> todayRecords.stream()
+                        .noneMatch(record -> 
+                            record.getTime().equals(time) && 
+                            record.isTaken()))
+                .min(Comparator.comparing(Time::getSpecificTime));
+
+        // 모든 시간대가 체크되었다면
+        if (nextUntakenTimeOpt.isEmpty()) {
+            return TakeMedicineResDto.builder()
+                    .allTaken(true)
+                    .build();
+        }
+
+        Time nextUntakenTime = nextUntakenTimeOpt.get();
+
+        // 4. 복용 기록 생성 또는 업데이트
+        MedicationRecord record = todayRecords.stream()
+                .filter(r -> r.getTime().equals(nextUntakenTime))
+                .findFirst()
+                .orElseGet(() -> {
+                    MedicationRecord newRecord = MedicationRecord.builder()
+                            .user(user)
+                            .medicine(medicine)
+                            .time(nextUntakenTime)
+                            .date(LocalDate.now())
+                            .taken(true)
+                            .build();
+                    return medicationRecordRepo.save(newRecord);
+                });
+
+        if (!record.isTaken()) {
+            record.updateTaken(true);
+        }
+
+        // 5. 응답 생성
+        return TakeMedicineResDto.builder()
+                .allTaken(false)
+                .takenTime(nextUntakenTime.getPeriod())
+                .takenAt(LocalDateTime.now())
                 .build();
     }
 

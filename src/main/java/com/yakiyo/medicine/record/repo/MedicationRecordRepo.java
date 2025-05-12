@@ -19,4 +19,12 @@ public interface MedicationRecordRepo extends JpaRepository<MedicationRecord, Lo
     // 특정 약, 특정 시간의 복용 기록 조회
     Optional<MedicationRecord> findByUserAndMedicineAndTimeAndDate(
             User user, Medicine_info medicine, Time time, LocalDate date);
+            
+    // 특정 약의 오늘 복용 기록 조회
+    List<MedicationRecord> findByUserAndMedicineAndDate(
+            User user, Medicine_info medicine, LocalDate date);
+    
+    // 특정 월의 복용 기록 조회
+    List<MedicationRecord> findByUserAndDateBetween(
+            User user, LocalDate startDate, LocalDate endDate);
 }
