@@ -73,6 +73,8 @@ public class UserController {
         return ResponseEntity.ok(userService.updateNick(googleId, request));
     }
 
+
+
     //마이페이지
     //닉네임,이메일 필요
     //닉네임 없을시 null 감

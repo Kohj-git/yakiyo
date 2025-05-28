@@ -11,10 +11,13 @@ import com.yakiyo.medicine.medicine_info.dto.res.MedicineListResDto;
 import com.yakiyo.medicine.medicine_info.dto.res.MedicineDetailResDto;
 import com.yakiyo.medicine.medicine_info.dto.res.NextMedicineResDto;
 import com.yakiyo.medicine.medicine_info.repo.InfoRepo;
+import com.yakiyo.medicine.record.domain.MedicationRecord;
+import com.yakiyo.medicine.record.repo.MedicationRecordRepo;
 import com.yakiyo.medicine.time.domain.Time;
 import com.yakiyo.medicine.time.repo.TimeRepo;
 import com.yakiyo.user.domain.User;
 import com.yakiyo.user.repo.UserRepo;
+
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -25,6 +28,7 @@ import java.time.LocalTime;
 import java.time.temporal.ChronoUnit;
 import java.util.Comparator;
 import java.util.List;
+import java.util.Optional;
 
 import com.yakiyo.medicine.record.dto.res.TakeMedicineResDto;
 

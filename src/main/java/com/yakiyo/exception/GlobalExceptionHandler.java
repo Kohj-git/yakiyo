@@ -7,20 +7,21 @@ import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 @RestControllerAdvice
 public class GlobalExceptionHandler {
-    
+
     // 사용자를 찾을 수 없는 경우
     @ExceptionHandler(UserNotFoundException.class)
     public ResponseEntity<String> handleUserNotFound(UserNotFoundException e) {
         return ResponseEntity.status(HttpStatus.NOT_FOUND).body(e.getMessage());
     }
-    
+
+
     // 유효하지 않은 인자값 (필수 필드 누락 등)
     @ExceptionHandler(IllegalArgumentException.class)
     public ResponseEntity<String> handleIllegalArgument(IllegalArgumentException e) {
         return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(e.getMessage());
     }
 
-    
+
     // 기타 예외 처리 (서버 에러 등)
     @ExceptionHandler(Exception.class)
     public ResponseEntity<String> handleGenericException(Exception e) {
@@ -30,3 +31,5 @@ public class GlobalExceptionHandler {
             .body("서버 오류가 발생했습니다: " + e.getMessage());
     }
 }
+
+
